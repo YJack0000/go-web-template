@@ -19,7 +19,7 @@ import (
 // @description swagger test example
 // @schemes http https
 // @BasePath /v1
-func SetupRouter(handler *gin.Engine, l logger.Interface, trainingJobManager usecase.TrainingJobManager, inferenceJobManager usecase.InferenceJobManager) {
+func SetupRouter(handler *gin.Engine, l logger.Interface, trainingJobManager usecase.TrainingJobRequester, inferenceJobManager usecase.InferenceJobRequester) {
 	handler.Use(gin.Logger())
 	handler.Use(gin.Recovery())
 

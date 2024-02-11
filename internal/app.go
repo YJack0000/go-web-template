@@ -13,7 +13,7 @@ import (
 	restful "golang_backend_template/internal/controller/restful"
 	adapter "golang_backend_template/internal/infra/adapter"
 	memo "golang_backend_template/internal/infra/memo"
-	"golang_backend_template/internal/usecase"
+	"golang_backend_template/internal/usecase/impl"
 	"golang_backend_template/pkg/httpserver"
 	"golang_backend_template/pkg/logger"
 )
@@ -26,13 +26,13 @@ func Run(cfg *config.Config) {
 		l.Error(fmt.Errorf("app - Run - client.NewClientWithOpts: %w", err))
 	}
 
-	trainingJobManager := usecase.NewTrainingJobManager(
+	trainingJobManager := impl.NewTrainingJobManager(
 		memo.NewTrainingJobsMemory(),
 		adapter.NewDockerAdapter(cli),
 		adapter.NewTwccAdapter(cfg.TWCC.APIKey),
 	)
 
-	inferenceJobManager := usecase.NewInferenceJobManager(
+	inferenceJobManager := impl.NewInferenceJobManager(
 		memo.NewInferenceJobsMemory(),
 		adapter.NewTwccAdapter(cfg.TWCC.APIKey),
 	)
@@ -40,8 +40,8 @@ func Run(cfg *config.Config) {
 	handler := gin.New()
 	restful.SetupRouter(handler,
 		l,
-		*trainingJobManager,
-		*inferenceJobManager)
+		trainingJobManager,
+		inferenceJobManager)
 	httpServer := httpserver.New(handler, httpserver.Port(cfg.HTTP.Port))
 
 	interrupt := make(chan os.Signal, 1)

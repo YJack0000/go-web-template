@@ -1,4 +1,4 @@
-package usecase
+package impl
 
 import (
 	"fmt"
@@ -55,7 +55,7 @@ func (uc *InferenceJobManager) GetJob(id string) (entity.GenericJob, error) {
 	return job.Job, nil
 }
 
-func (uc *InferenceJobManager) GetAllJob() ([]entity.GenericJob, error) {
+func (uc *InferenceJobManager) GetAllJobs() ([]entity.GenericJob, error) {
 	jobs, err := uc.repo.GetAllInferenceJob()
 	if err != nil {
 		return nil, fmt.Errorf("InferenceJobManager - GetAllJob - s.repo.GetAllInferenceJob: %w", err)

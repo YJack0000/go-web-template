@@ -10,11 +10,11 @@ import (
 )
 
 type TrainingJobController struct {
-	u usecase.TrainingJobManager
+	u usecase.TrainingJobRequester
 	l logger.Interface
 }
 
-func InitTrainingJobRoutes(handler *gin.RouterGroup, u usecase.TrainingJobManager, l logger.Interface) {
+func InitTrainingJobRoutes(handler *gin.RouterGroup, u usecase.TrainingJobRequester, l logger.Interface) {
 	r := &TrainingJobController{u, l}
 
 	h := handler.Group("/training-jobs")
@@ -109,7 +109,7 @@ type listTrainingJobResponse struct {
 // @Failure     500 {object} eResponse
 // @Router      /training-jobs/all [get]
 func (r *TrainingJobController) list(c *gin.Context) {
-	jobs, err := r.u.GetAllJob()
+	jobs, err := r.u.GetAllJobs()
 	if err != nil {
 		r.l.Error(err, "http - v1 - get")
 		errorResponse(c, 500, "database problems")

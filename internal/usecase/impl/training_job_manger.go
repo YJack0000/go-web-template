@@ -1,4 +1,4 @@
-package usecase
+package impl
 
 import (
 	"context"
@@ -101,7 +101,7 @@ func (uc *TrainingJobManager) GetJob(id string) (entity.GenericJob, error) {
 	return uc.repo.GetJob(id)
 }
 
-func (uc *TrainingJobManager) GetAllJob() ([]entity.GenericJob, error) {
+func (uc *TrainingJobManager) GetAllJobs() ([]entity.GenericJob, error) {
 	containerJobs, err := uc.repo.GetContainerJobList()
 	if err != nil {
 		return nil, fmt.Errorf("TrainingJobManager - GetAllJob - s.repo.GetTwccJobList: %w", err)

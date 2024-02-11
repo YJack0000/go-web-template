@@ -12,11 +12,11 @@ import (
 )
 
 type InferenceJobController struct {
-	u usecase.InferenceJobManager
+	u usecase.InferenceJobRequester
 	l logger.Interface
 }
 
-func InitInferenceJobRoutes(handler *gin.RouterGroup, u usecase.InferenceJobManager, l logger.Interface) {
+func InitInferenceJobRoutes(handler *gin.RouterGroup, u usecase.InferenceJobRequester, l logger.Interface) {
 	c := &InferenceJobController{u, l}
 
 	h := handler.Group("/inference-jobs")
@@ -121,7 +121,7 @@ type listInferenceJobResponse struct {
 // @Failure     500 {object} eResponse
 // @Router      /inference-jobs [get]
 func (r *InferenceJobController) list(c *gin.Context) {
-	jobs, err := r.u.GetAllJob()
+	jobs, err := r.u.GetAllJobs()
 	if err != nil {
 		r.l.Error(err, "http - v1 - get")
 		errorResponse(c, 500, "database problems")
