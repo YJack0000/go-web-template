@@ -1,4 +1,4 @@
-include .env.example
+include .env
 export
 
 LOCAL_BIN:=$(CURDIR)/bin
@@ -13,30 +13,25 @@ help:
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
 swag-v1: 
-	swag init -g internal/controller/http/v1/router.go
+	swag init -g internal/controller/restful/router.go
 .PHONY: swag-v1
 
 run: swag-v1 
-	go mod tidy && go mod download && \
-	DISABLE_SWAGGER_HTTP_HANDLER='' GIN_MODE=debug CGO_ENABLED=0 go run ./cmd/main.go
+	 go mod tidy && go mod download && \
+	 DISABLE_SWAGGER_HTTP_HANDLER='' GIN_MODE=debug CGO_ENABLED=0 go run ./cmd/main.go
 .PHONY: run
 
-docker-rm-volume: 
-	docker volume rm go-clean-template_pg-data
-.PHONY: docker-rm-volume
-
-linter-dotenv:
-	dotenv-linter
-.PHONY: linter-dotenv
+build: swag-v1
+	   go build -o ./tmp/main ./cmd/main.go
+.PHONY: build
 
 test:
 	go test -v -cover -race ./internal/...
 .PHONY: test
 
-integration-test:
-	go clean -testcache && go test -v ./integration-test/...
-.PHONY: integration-test
+docker-build-dev:
+	docker build -f Dockerfile.dev -t llm-dev .
+.PHONY: docker-build-dev
 
-mock:
-	mockgen -source ./internal/usecase/interfaces.go -package usecase_test > ./internal/usecase/mocks_test.go
-.PHONY: mock
+docker-compose-dev:
+	docker-compose -f docker-compose-dev.yml up

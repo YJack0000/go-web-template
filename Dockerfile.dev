@@ -1,0 +1,12 @@
+FROM golang:1.21.1
+
+COPY . /app
+WORKDIR /app
+RUN go mod download
+
+EXPOSE 8080
+
+RUN go install github.com/swaggo/swag/cmd/swag@latest \
+ && go install github.com/cosmtrek/air@latest
+
+CMD ["air"]

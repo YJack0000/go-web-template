@@ -15,9 +15,9 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/test/add": {
-            "post": {
-                "description": "add test history",
+        "/inference-jobs": {
+            "get": {
+                "description": "list all inference jobs",
                 "consumes": [
                     "application/json"
                 ],
@@ -25,19 +25,122 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "test"
+                    "inference-jobs"
                 ],
-                "summary": "add history",
-                "operationId": "add",
+                "summary": "list all inference jobs",
+                "operationId": "list",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.listInferenceJobResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.eResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "create inference job",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "inference-jobs"
+                ],
+                "summary": "create inference job",
+                "operationId": "create",
                 "parameters": [
                     {
-                        "description": "request body",
-                        "name": "request",
+                        "description": "request",
+                        "name": "req",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/v1.addRequest"
+                            "$ref": "#/definitions/v1.createInferenceJobRequest"
                         }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.createInferenceJobResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.eResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/inference-jobs/{id}": {
+            "get": {
+                "description": "get inference job",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "inference-jobs"
+                ],
+                "summary": "get inference job",
+                "operationId": "get",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Job ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.getInferenceJobResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.eResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "delete inference job",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "inference-jobs"
+                ],
+                "summary": "delete inference job",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Job ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -46,13 +149,19 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/v1.sResponse"
                         }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.eResponse"
+                        }
                     }
                 }
             }
         },
-        "/test/history": {
+        "/training-jobs/all": {
             "get": {
-                "description": "Show all test history",
+                "description": "list all training jobs",
                 "consumes": [
                     "application/json"
                 ],
@@ -60,15 +169,92 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "test"
+                    "training-jobs"
                 ],
-                "summary": "Show history",
-                "operationId": "history",
+                "summary": "list all training jobs",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/v1.historyResponse"
+                            "$ref": "#/definitions/v1.getJobResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.eResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/training-jobs/create": {
+            "post": {
+                "description": "create training job",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "training-jobs"
+                ],
+                "summary": "create training job",
+                "parameters": [
+                    {
+                        "description": "request",
+                        "name": "req",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.createTrainingJobRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.createTrainingJobResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.eResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/training-jobs/{id}": {
+            "get": {
+                "description": "get training job",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "training-jobs"
+                ],
+                "summary": "get training job",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Job ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.getJobResponse"
                         }
                     },
                     "500": {
@@ -82,21 +268,58 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "entity.Test": {
+        "entity.GenericJob": {
             "type": "object",
             "properties": {
-                "test": {
+                "jobId": {
                     "type": "string",
-                    "example": "test"
+                    "example": "12345"
+                },
+                "jobName": {
+                    "type": "string",
+                    "example": "name"
+                },
+                "jobStatus": {
+                    "type": "string",
+                    "example": "jobStatus"
                 }
             }
         },
-        "v1.addRequest": {
+        "v1.createInferenceJobRequest": {
+            "type": "object"
+        },
+        "v1.createInferenceJobResponse": {
             "type": "object",
             "properties": {
-                "test": {
+                "entryPoint": {
                     "type": "string",
-                    "example": "test"
+                    "example": "http://localhost:8080"
+                },
+                "jobId": {
+                    "type": "string",
+                    "example": "12345"
+                }
+            }
+        },
+        "v1.createTrainingJobRequest": {
+            "type": "object",
+            "properties": {
+                "dockerImageName": {
+                    "type": "string",
+                    "example": "yjack0000cs12/llm-training:latest"
+                },
+                "twccJobId": {
+                    "type": "string",
+                    "example": "237139"
+                }
+            }
+        },
+        "v1.createTrainingJobResponse": {
+            "type": "object",
+            "properties": {
+                "jobId": {
+                    "type": "string",
+                    "example": "12345"
                 }
             }
         },
@@ -109,13 +332,29 @@ const docTemplate = `{
                 }
             }
         },
-        "v1.historyResponse": {
+        "v1.getInferenceJobResponse": {
             "type": "object",
             "properties": {
-                "history": {
+                "job": {
+                    "$ref": "#/definitions/entity.GenericJob"
+                }
+            }
+        },
+        "v1.getJobResponse": {
+            "type": "object",
+            "properties": {
+                "job": {
+                    "$ref": "#/definitions/entity.GenericJob"
+                }
+            }
+        },
+        "v1.listInferenceJobResponse": {
+            "type": "object",
+            "properties": {
+                "jobs": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/entity.Test"
+                        "$ref": "#/definitions/entity.GenericJob"
                     }
                 }
             }

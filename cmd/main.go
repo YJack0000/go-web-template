@@ -3,17 +3,15 @@ package main
 import (
 	"log"
 
-	"llm_plateform_resourcemanagement/config"
-	"llm_plateform_resourcemanagement/internal/app"
+    "golang_backend_template/config"
+	"golang_backend_template/internal"
 )
 
 func main() {
-	// Configuration
 	cfg, err := config.NewConfig()
 	if err != nil {
 		log.Fatalf("Config error: %s", err)
 	}
 
-	// Run
 	app.Run(cfg)
 }
