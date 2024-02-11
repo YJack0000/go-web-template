@@ -10,49 +10,49 @@ import (
 )
 
 type TrainingJobManager struct {
-	memo   ports.TrainingJobsRepo
+	repo   ports.TrainingJobsRepo
 	docker ports.ContainerManager
 	twcc   ports.TwccManager
 }
 
 func NewTrainingJobManager(m ports.TrainingJobsRepo, d ports.ContainerManager, w ports.TwccManager) *TrainingJobManager {
 	return &TrainingJobManager{
-		memo:   m,
+		repo:   m,
 		docker: d,
 		twcc:   w,
 	}
 }
 
 func (uc *TrainingJobManager) CreateJob(job entity.GenericJob, dockerImageName string, twccJobId string) error {
-	containerJobs, err := uc.memo.GetContainerJobList()
+	containerJobs, err := uc.repo.GetContainerJobList()
 
 	if err != nil {
-		return fmt.Errorf("TrainingJobManager - CreateJob - s.memo.GetTwccJobList: %w", err)
+		return fmt.Errorf("TrainingJobManager - CreateJob - s.repo.GetTwccJobList: %w", err)
 	}
 
 	if len(containerJobs) < 2 {
 		job.Status = "running on docker"
-		err = uc.memo.PushContainerJob(entity.ContainerJob{
+		err = uc.repo.PushContainerJob(entity.ContainerJob{
 			Job:             job,
 			DockerImageName: dockerImageName,
 		})
 
 		if err != nil {
-			return fmt.Errorf("TrainingJobManager - CreateJob - s.memo.CreateContainerJob: %w", err)
+			return fmt.Errorf("TrainingJobManager - CreateJob - s.repo.CreateContainerJob: %w", err)
 		}
 
 		ctx := context.Background()
 		containerID, err := uc.docker.CreateContainer(ctx, dockerImageName)
 		if err != nil {
-			uc.memo.DeleteContainerJob(job.ID)
+			uc.repo.DeleteContainerJob(job.ID)
 			return fmt.Errorf("TrainingJobManager - CreateJob - s.docker.CreateContainerJob: %w", err)
 		}
 
 		// function to remove container job from queue after container job is done
 		go uc.docker.ContainerStartWithCallback(ctx, containerID, func() {
-			err := uc.memo.DeleteContainerJob(job.ID)
+			err := uc.repo.DeleteContainerJob(job.ID)
 			if err != nil {
-				fmt.Errorf("TrainingJobManager - CreateJob - s.memo.DeleteContainerJob: %w", err)
+				fmt.Errorf("TrainingJobManager - CreateJob - s.repo.DeleteContainerJob: %w", err)
 			}
 		})
 
@@ -60,17 +60,17 @@ func (uc *TrainingJobManager) CreateJob(job entity.GenericJob, dockerImageName s
 	}
 
 	job.Status = "running on twcc"
-	err = uc.memo.PushTwccJob(entity.TwccJob{
+	err = uc.repo.PushTwccJob(entity.TwccJob{
 		Job:       job,
 		TwccJobId: twccJobId,
 	})
 	if err != nil {
-		return fmt.Errorf("TrainingJobManager - CreateJob - s.memo.CreateTwccJob: %w", err)
+		return fmt.Errorf("TrainingJobManager - CreateJob - s.repo.CreateTwccJob: %w", err)
 	}
 
 	err = uc.twcc.RunTwccJob(twccJobId)
 	if err != nil {
-		uc.memo.DeleteTwccJob(job.ID)
+		uc.repo.DeleteTwccJob(job.ID)
 		return fmt.Errorf("TrainingJobManager - CreateJob - s.twcc.RunTwccJob: %w", err)
 	}
 
@@ -85,9 +85,9 @@ func (uc *TrainingJobManager) CreateJob(job entity.GenericJob, dockerImageName s
 			// }
 
 			if status == "Inactive" {
-				_ = uc.memo.DeleteTwccJob(job.ID)
+				_ = uc.repo.DeleteTwccJob(job.ID)
 				// if err != nil {
-				// 	fmt.Errorf("TrainingJobManager - CreateJob - s.memo.DeleteTwccJob: %w", err)
+				// 	fmt.Errorf("TrainingJobManager - CreateJob - s.repo.DeleteTwccJob: %w", err)
 				// }
 				break
 			}
@@ -98,23 +98,23 @@ func (uc *TrainingJobManager) CreateJob(job entity.GenericJob, dockerImageName s
 }
 
 func (uc *TrainingJobManager) GetJob(id string) (entity.GenericJob, error) {
-	return uc.memo.GetJob(id)
+	return uc.repo.GetJob(id)
 }
 
 func (uc *TrainingJobManager) GetAllJob() ([]entity.GenericJob, error) {
-	containerJobs, err := uc.memo.GetContainerJobList()
+	containerJobs, err := uc.repo.GetContainerJobList()
 	if err != nil {
-		return nil, fmt.Errorf("TrainingJobManager - GetAllJob - s.memo.GetTwccJobList: %w", err)
+		return nil, fmt.Errorf("TrainingJobManager - GetAllJob - s.repo.GetTwccJobList: %w", err)
 	}
 
-	twccJobs, err := uc.memo.GetTwccJobList()
+	twccJobs, err := uc.repo.GetTwccJobList()
 	if err != nil {
-		return nil, fmt.Errorf("TrainingJobManager - GetAllJob - s.memo.GetTwccJobList: %w", err)
+		return nil, fmt.Errorf("TrainingJobManager - GetAllJob - s.repo.GetTwccJobList: %w", err)
 	}
 
-	historyJobs, err := uc.memo.GetHistoryJobList()
+	historyJobs, err := uc.repo.GetHistoryJobList()
 	if err != nil {
-		return nil, fmt.Errorf("TrainingJobManager - GetAllJob - s.memo.GetHistoryJobList: %w", err)
+		return nil, fmt.Errorf("TrainingJobManager - GetAllJob - s.repo.GetHistoryJobList: %w", err)
 	}
 
 	jobs := make([]entity.GenericJob, 0, 64)
@@ -135,25 +135,25 @@ func (uc *TrainingJobManager) GetAllJob() ([]entity.GenericJob, error) {
 }
 
 func (uc *TrainingJobManager) DeleteJob(id string) error {
-	containerJobs, err := uc.memo.GetContainerJobList()
+	containerJobs, err := uc.repo.GetContainerJobList()
 
 	if err != nil {
-		return fmt.Errorf("TrainingJobManager - DeleteJob - s.memo.GetTwccJobList: %w", err)
+		return fmt.Errorf("TrainingJobManager - DeleteJob - s.repo.GetTwccJobList: %w", err)
 	}
 
 	if len(containerJobs) > 0 {
-		err = uc.memo.DeleteContainerJob(id)
+		err = uc.repo.DeleteContainerJob(id)
 		if err != nil {
-			return fmt.Errorf("TrainingJobManager - DeleteJob - s.memo.DeleteContainerJob: %w", err)
+			return fmt.Errorf("TrainingJobManager - DeleteJob - s.repo.DeleteContainerJob: %w", err)
 		}
 
 		return nil
 	}
 
-	err = uc.memo.DeleteTwccJob(id)
+	err = uc.repo.DeleteTwccJob(id)
 
 	if err != nil {
-		return fmt.Errorf("TrainingJobManager - DeleteJob - s.memo.DeleteTwccJob: %w", err)
+		return fmt.Errorf("TrainingJobManager - DeleteJob - s.repo.DeleteTwccJob: %w", err)
 	}
 
 	return nil
